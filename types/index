@@ -1,0 +1,62 @@
+
+export type PriorityLevel = 'high' | 'medium' | 'low';
+export type QuestionType = 'mcq' | 'short' | 'long';
+
+export interface Topic {
+      id: string;
+        name: string;
+          frequency: number; // 0-10
+            marks_weight: number; // 0-100
+              priority: PriorityLevel;
+                created_at: string;
+                  updated_at: string;
+}
+
+export interface Question {
+      id: string;
+        topic_id: string;
+          type: QuestionType;
+            question_text: string;
+              correct_answer: string;
+                created_at: string;
+                  updated_at: string;
+}
+
+
+export interface Attempt {
+      id: string;
+        user_id: string;
+          question_id: string;
+            is_correct: boolean;
+              created_at: string;
+}
+
+export interface TopicProgress {
+      id: string;
+        user_id: string;
+          topic_id: string;
+            accuracy: number | null; // 0-100
+              last_practiced: string | null;
+                created_at: string;
+                  updated_at: string;
+}
+
+// API Response types
+export interface GetTopicsResponse {
+      topics: Topic[];
+}
+
+export interface GetRecommendationsResponse {
+      recommendations: Topic[];
+}
+
+export interface PostAttemptRequest {
+      question_id: string;
+        is_correct: boolean;
+}
+
+export interface PostAttemptResponse {
+      attempt: Attempt;
+        topic_progress: TopicProgress;
+}
+

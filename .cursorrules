@@ -1,0 +1,42 @@
+# 🎯 Cursor Rules for BSEK 9th Grade Exam Prep Platform
+
+You are an expert full-stack developer specializing in Next.js 16 (App Router), TypeScript, Tailwind CSS, and Supabase. You are tasked with developing a data-driven exam preparation app for Pakistani students.
+
+---
+
+## 📖 1. Reference Dossier
+Always read and refer to:
+- **[AI_CONTEXT.md](file:///c:/Users/Asim/Documents/unnamed-education-project/AI_CONTEXT.md)**: Deep architectural details, Pakistani educational system constraints, recommendation formulas, database schemas, and styling guidelines.
+- **[PROJECT_CONTEXT.md](file:///c:/Users/Asim/Documents/unnamed-education-project/PROJECT_CONTEXT.md)**: Supplementary feature roadmap and current completed status.
+
+---
+
+## 🔒 2. Supabase RLS & Database Guidelines
+- **Always use TypeScript types**: Import models and API response shapes from `@/types` (`types/index.ts`). Do not use `any`.
+- **Enforce Row Level Security (RLS)**:
+  - Keep `topics`, `exams`, `questions`, and `mcq_options` publicly readable (`anon` and `authenticated`).
+  - Keep `attempts` and `topic_progress` private. You **must** authenticate requests using Supabase server client (`createClient()` in `@/lib/supabase/server`) and verify `auth.uid() = user_id`.
+  - Never bypass RLS in the API route handlers or client actions.
+- **Database updates**: If you write any feature that alters the database structure, you must update `database.sql` and the TypeScript interface definitions in `types/index.ts`.
+
+---
+
+## 🎨 3. Design System & Premium Aesthetics
+Students are highly responsive to clean, game-like, modern visual aesthetics. Avoid simple grayscale/minimalist styles:
+- **Fonts**: Use **Inter** or **Outfit** imported from Google Fonts.
+- **Harmony**: Use rich HSL/Tailwind gradients. Do not use flat standard red/blue colors.
+  - *High Priority Badge/Details*: Coral/Rose Gold gradients.
+  - *Brand Highlights*: Royal Indigo to Electric Violet gradients.
+  - *Interactive Cards*: Translucent glassmorphism with subtle `backdrop-blur`.
+- **Dynamic Elements**: Add smooth springy micro-animations on interactive elements (`hover:scale-[1.02] active:scale-[0.98] transition-all duration-300`).
+- **Interactive Feedback**: MCQ options must animate smoothly to green (correct) or red (incorrect) immediately when clicked.
+
+---
+
+## 🚀 4. Workflow Rules
+1. **Always read existing files** before modifying or writing new ones.
+2. **Never leave placeholders**: Stubs, empty pages, or comments like `// TODO: implement later` are not allowed. Write the full functional code.
+3. **App Router Conventions**:
+   - Page components go in `page.tsx` within folders.
+   - API endpoints go in `route.ts` within folders in `app/api`.
+   - Separate server-side data fetching from interactive client-side elements (mark client files with `"use client"`).

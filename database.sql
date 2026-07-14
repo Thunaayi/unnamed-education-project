@@ -14,6 +14,7 @@ CREATE TYPE section_label   AS ENUM ('A', 'B', 'C');
 CREATE TABLE topics (
   id           UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
   name         TEXT          NOT NULL UNIQUE,
+  subject      TEXT          NOT NULL DEFAULT 'Mathematics',
   frequency    INTEGER       NOT NULL DEFAULT 0 CHECK (frequency >= 0 AND frequency <= 10),
   marks_weight INTEGER       NOT NULL DEFAULT 0 CHECK (marks_weight >= 0 AND marks_weight <= 100),
   priority     priority_level NOT NULL DEFAULT 'medium',
@@ -85,6 +86,15 @@ CREATE TABLE topic_progress (
   UNIQUE (user_id, topic_id)
 );
 
+-- ── profiles ────────────────────────────────────────────────────
+-- One row per user, created on signup via trigger or manually.
+CREATE TABLE profiles (
+  id           UUID         PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  display_name TEXT         NOT NULL DEFAULT '',
+  created_at   TIMESTAMPTZ  DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ  DEFAULT NOW()
+);
+
 -- ── Indexes ───────────────────────────────────────────────────
 CREATE INDEX idx_questions_exam_id   ON questions(exam_id);
 CREATE INDEX idx_questions_topic_id  ON questions(topic_id);
@@ -102,6 +112,7 @@ ALTER TABLE questions      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE mcq_options    ENABLE ROW LEVEL SECURITY;
 ALTER TABLE attempts       ENABLE ROW LEVEL SECURITY;
 ALTER TABLE topic_progress ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles       ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for content tables
 CREATE POLICY "public_read_topics"      ON topics      FOR SELECT TO authenticated, anon USING (true);
@@ -114,7 +125,10 @@ CREATE POLICY "own_attempts"  ON attempts       FOR ALL TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "own_progress"  ON topic_progress FOR ALL TO authenticated
   USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_profile"   ON profiles       FOR ALL TO authenticated
+  USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+CREATE POLICY "public_read_profiles" ON profiles FOR SELECT TO authenticated USING (true);
 
 -- ── Grants ────────────────────────────────────────────────────
 GRANT SELECT ON topics, exams, questions, mcq_options TO authenticated, anon;
-GRANT ALL    ON attempts, topic_progress               TO authenticated;
+GRANT ALL    ON attempts, topic_progress, profiles  TO authenticated;

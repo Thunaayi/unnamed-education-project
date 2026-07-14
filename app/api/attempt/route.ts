@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     .eq('questions.topic_id', topic_id);
 
   const total   = allAttempts?.length ?? 0;
-  const correct = allAttempts?.filter((a: any) => a.is_correct).length ?? 0;
+  const correct = allAttempts?.filter((a: { is_correct: boolean }) => a.is_correct).length ?? 0;
   const accuracy = total > 0 ? Number(((correct / total) * 100).toFixed(2)) : null;
 
   // 4. Upsert topic_progress

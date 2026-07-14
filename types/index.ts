@@ -1,17 +1,27 @@
-// ── Enums ──────────────────────────────────────────────────────
 export type PriorityLevel  = 'high' | 'medium' | 'low';
 export type QuestionType   = 'mcq' | 'short_answer' | 'detailed_answer';
 export type SectionLabel   = 'A' | 'B' | 'C';
 
-// ── Database row types ─────────────────────────────────────────
 export interface Topic {
   id:           string;
   name:         string;
-  frequency:    number;   // 0-10, derived from past-paper analysis
-  marks_weight: number;   // 0-100
+  subject:      string;
+  frequency:    number;
+  marks_weight: number;
   priority:     PriorityLevel;
   created_at:   string;
   updated_at:   string;
+}
+
+export interface StatsResponse {
+  total_attempts: number;
+  correct_attempts: number;
+  accuracy: number;
+  today_attempts: number;
+  topics_practiced: number;
+  streak_days: number;
+  topics_by_subject: { subject: string; accuracy: number; count: number }[];
+  mastery_history: { label: string; value: number }[];
 }
 
 export interface Exam {

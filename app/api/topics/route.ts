@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import type { GetTopicsResponse, TopicWithProgress } from '@/types';
+import type { GetTopicsResponse, Topic, TopicWithProgress } from '@/types';
 
 export async function GET() {
   const supabase = await createClient();
@@ -29,12 +29,12 @@ export async function GET() {
 
     if (progress) {
       progressMap = Object.fromEntries(
-        progress.map((p: any) => [p.topic_id, { accuracy: p.accuracy, last_practiced: p.last_practiced }])
+        progress.map((p: { topic_id: string; accuracy: number | null; last_practiced: string | null }) => [p.topic_id, { accuracy: p.accuracy, last_practiced: p.last_practiced }])
       );
     }
   }
 
-  const enriched: TopicWithProgress[] = (topics ?? []).map((t: any) => ({
+  const enriched: TopicWithProgress[] = (topics ?? []).map((t: Topic) => ({
     ...t,
     user_accuracy: progressMap[t.id]?.accuracy ?? null,
     last_practiced: progressMap[t.id]?.last_practiced ?? null,

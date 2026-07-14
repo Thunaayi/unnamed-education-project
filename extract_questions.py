@@ -32,7 +32,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from collections import defaultdict
 
 
-# ── Roman-numeral → integer map (used for MCQ ordering) ───────────────────────
+# Map roman numerals to integers for MCQ ordering.
 ROMAN_TO_INT: Dict[str, int] = {
     "i": 1,   "ii": 2,  "iii": 3,  "iv": 4,   "v": 5,
     "vi": 6,  "vii": 7, "viii": 8, "ix": 9,   "x": 10,
@@ -40,7 +40,7 @@ ROMAN_TO_INT: Dict[str, int] = {
     "xvi": 16,"xvii": 17,"xviii": 18,"xix": 19, "xx": 20,
 }
 
-# ── Topic keyword patterns ─────────────────────────────────────────────────────
+# Topic keyword patterns used to infer question topics.
 TOPIC_PATTERNS: List[Tuple[str, List[str]]] = [
     ("Logarithms",          [r"log", r"logarithm", r"characteristic", r"mantissa", r"antilog"]),
     ("Complex Numbers",     [r"conjugate", r"complex", r"z_?1|z_?2", r"\bi\b.*real", r"argand"]),
@@ -65,7 +65,7 @@ TOPIC_PATTERNS: List[Tuple[str, List[str]]] = [
 ]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# Core extractor class and pipeline implementation.
 class StructuredExamExtractor:
     """End-to-end pipeline: images → structured JSON, one entry per exam year."""
 
@@ -73,7 +73,7 @@ class StructuredExamExtractor:
         self.images_folder = images_folder
         self.output_file = "structured_questions.json"
 
-    # ── 1. OCR ────────────────────────────────────────────────────────────────
+    # 1. OCR pipeline
 
     def preprocess_image(self, image_path: str) -> Image.Image:
         """Upscale + adaptive-threshold a scanned exam page for Tesseract."""
@@ -106,7 +106,7 @@ class StructuredExamExtractor:
             print(f"    ⚠️  OCR error ({image_path}): {exc}")
             return ""
 
-    # ── 2. TEXT NORMALISATION ─────────────────────────────────────────────────
+    # 2. Text normalization
 
     @staticmethod
     def normalise(text: str) -> str:
@@ -144,7 +144,7 @@ class StructuredExamExtractor:
 
         return text
 
-    # ── 3. FILENAME PARSING ───────────────────────────────────────────────────
+    # 3. Filename parsing
 
     @staticmethod
     def parse_filename(filename: str) -> Optional[Tuple[int, int]]:
@@ -155,7 +155,7 @@ class StructuredExamExtractor:
         )
         return (int(m.group(1)), int(m.group(2))) if m else None
 
-    # ── 4. EXAM METADATA ──────────────────────────────────────────────────────
+    # 4. Extract exam metadata from OCR text.
 
     @staticmethod
     def extract_metadata(text: str, year: int) -> Dict[str, Any]:
@@ -179,10 +179,8 @@ class StructuredExamExtractor:
             meta["group"] = "Arts"
         return meta
 
-    # ── 5. SECTION DETECTION ─────────────────────────────────────────────────
-    #
-    # We search for section boundaries in the *normalised* text.
-    # Using many overlapping patterns to survive heavy OCR noise.
+    # 5. Detect exam sections using normalised text patterns.
+    # This uses several overlapping patterns to handle OCR noise.
 
     SECTION_PATTERNS: Dict[str, List[str]] = {
         "A": [
@@ -235,9 +233,8 @@ class StructuredExamExtractor:
                     positions[letter] = m.start()
                     break
 
-        # ── Structural fallback for Section A ─────────────────────────────────
-        # If we didn't find Section A but there are roman-numeral MCQ markers
-        # in the first 30 % of the text, treat the very start as Section A.
+        # Use a fallback when Section A headers are missing:
+        # if roman numeral MCQ markers appear early, assume Section A starts at the top.
         if "A" not in positions:
             first_third = raw_text[: len(raw_text) // 3]
             if re.search(r"\([ivx]{1,6}\w{0,3}\)", first_third, re.IGNORECASE):
@@ -258,7 +255,7 @@ class StructuredExamExtractor:
             sections[letter] = full_text[start:end].strip()
         return sections
 
-    # ── 6. MCQ PARSING ────────────────────────────────────────────────────────
+    # 6. Parse multiple choice questions.
 
     # Matches sub-question labels in both formats:
     #   (i)  (xiv)  (aii)  (xivpx   ← OCR noise variants
@@ -324,7 +321,7 @@ class StructuredExamExtractor:
         options: List[str] = []
         correct_answer: Optional[str] = None
 
-        # ── 2025 format: (A) … (B) … (C) … (D) … ────────────────────────────
+        # Parse the 2025 MCQ option format with labeled answer choices.
         if re.search(r"\([A-D]\)", body):
             sub = re.split(r"\(([A-D])\)\s*", body)
             # sub = [question_text, 'A', opt_body, 'B', opt_body, …]
@@ -344,7 +341,7 @@ class StructuredExamExtractor:
                         correct_answer = opt_clean
                 j += 2
 
-        # ── 2024 format: options prefixed with * ─────────────────────────────
+        # Parse the 2024 MCQ option format where options start with '*'.
         else:
             star_parts = re.split(r"(?<!\w)\*(?!\*)", body)
             if len(star_parts) >= 2:
@@ -383,7 +380,7 @@ class StructuredExamExtractor:
             "topic": self._infer_topic(question_text),
         }
 
-    # ── 7. SECTION B / C PARSING ─────────────────────────────────────────────
+    # 7. Parse Section B and Section C content.
 
     def parse_written_section(self, text: str, section: str) -> List[Dict]:
         """
@@ -431,7 +428,7 @@ class StructuredExamExtractor:
 
         return questions
 
-    # ── 8. TOPIC INFERENCE ────────────────────────────────────────────────────
+    # 8. Infer the most likely topic for a question.
 
     @staticmethod
     def _infer_topic(text: str) -> str:
@@ -443,7 +440,7 @@ class StructuredExamExtractor:
                     return topic
         return ""
 
-    # ── 9. MAIN ORCHESTRATION ─────────────────────────────────────────────────
+    # 9. Main orchestration of exam extraction.
 
     def process_all(self) -> List[Dict]:
         """
@@ -488,7 +485,7 @@ class StructuredExamExtractor:
     def _process_exam(self, year: int, pages: Dict[int, str]) -> Dict:
         """OCR all pages for one year, then parse into structured sections."""
 
-        # ── OCR ───────────────────────────────────────────────────────────────
+        # OCR stage: run OCR on each page and collect the extracted text.
         page_texts: Dict[int, str] = {}
         for pg in sorted(pages):
             path = pages[pg]
@@ -503,7 +500,7 @@ class StructuredExamExtractor:
             page_texts[p] for p in sorted(page_texts)
         )
 
-        # ── Metadata ──────────────────────────────────────────────────────────
+        # Extract metadata from the full text.
         meta = self.extract_metadata(full_text, year)
         meta["source_files"] = [os.path.basename(pages[p]) for p in sorted(pages)]
         meta["pages_found"] = sorted(pages.keys())
@@ -515,11 +512,11 @@ class StructuredExamExtractor:
                 meta["missing_pages"] = missing
                 print(f"\n  ⚠️   Missing pages: {missing}")
 
-        # ── Section splitting ─────────────────────────────────────────────────
+        # Split the exam into sections based on detected boundaries.
         section_texts = self.split_into_sections(full_text)
         print(f"\n  📂  Sections detected: {list(section_texts.keys())}")
 
-        # ── Parse sections ────────────────────────────────────────────────────
+        # Parse each detected section into structured questions.
         sections: Dict[str, Any] = {}
 
         if "A" in section_texts:
@@ -599,7 +596,7 @@ class StructuredExamExtractor:
         meta["sections"] = sections
         return meta
 
-    # ── 10. OUTPUT ────────────────────────────────────────────────────────────
+    # 10. Write formatted output to the JSON file.
 
     def save(self, exams: List[Dict], output_file: Optional[str] = None) -> None:
         out = output_file or self.output_file
@@ -608,7 +605,7 @@ class StructuredExamExtractor:
         print(f"\n💾  Saved → {out}  ({len(exams)} exam year(s))")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
+# End of extractor definitions.
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="BSEK 9th Grade — Structured Exam Question Extractor"

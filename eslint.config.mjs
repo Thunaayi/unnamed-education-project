@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "seed.js",
+    "structured_questions.json",
+    "New_ui_design/**",
   ]),
 ]);
 

@@ -338,24 +338,29 @@ python extract_questions.py
 - Project scaffolding with Next.js 16
 - Database schema design and SQL
 - TypeScript type definitions
-- API route structure
-- Page components (basic)
+- API route structure (`/api/topics`, `/api/recommendations`, `/api/attempt`, `/api/questions`, `/api/stats`)
+- Landing page with polished design
+- Dashboard page (live data from API, recommendations, stats, topic radar)
+- Topics hub with live data, priority badges, frequency bars, accuracy display
+- Practice engine (`/practice/[topicId]`) — MCQ with instant green/red feedback, short/detailed answer with self-grading rubric reveal
+- Recommendation algorithm (priority × frequency × weakness boost)
 - OCR extraction tool with image processing
 - Environment setup and documentation
+- User authentication flow (login, register, auth callback, middleware route protection)
+- Supabase browser + server client setup
+- Navigation bar with auth-aware sign in/out
+- Sample seed data (`structured_questions.json`)
+- Progress visualization (accuracy bars, streak tracking, weak area detection)
+- Performance analytics (stats endpoint with attempts, accuracy, streak calculation)
 
 ### 🚧 In Progress
-- API route implementations
-- Page component logic
-- User authentication flow
-- Data seeding with sample questions
+- Data seeding automation (seed.js ready, needs DB connection)
 
 ### 📋 TODO
-- Implement recommendation algorithm
-- Add user progress visualization
-- Create admin interface for content management
-- Add more question types (beyond MCQ/short)
-- Implement spaced repetition features
-- Add performance analytics
+- Admin interface for content management
+- Spaced repetition features
+- Advanced performance analytics (weekly charts, trend lines)
+- Email confirmation flow polish
 
 ## 🤝 Contributing
 

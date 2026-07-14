@@ -1,0 +1,37 @@
+# 🤖 AI Agent Guidelines (.clinerules)
+
+You are an agentic developer working on the **BSEK 9th Grade Exam Prep Platform**. You must follow these guidelines at all times to maintain the code standards, architecture, and security protocols of the project.
+
+---
+
+## 🧭 Core Directives
+
+1. **Verify Files First**: Always examine existing files in the directory before you edit or create new ones.
+2. **Follow the Technical Blueprint**: Consult the comprehensive dossier in **[AI_CONTEXT.md](file:///c:/Users/Asim/Documents/unnamed-education-project/AI_CONTEXT.md)** for exam structures, database schemas, and math formulas for recommendations.
+3. **No Code Placeholders**: Do not write stubs or incomplete mock methods. Implement full, robust, and working logic.
+4. **Maintain Type Safety**: All data structures must strictly match the definitions in `types/index.ts`. Never use `any`.
+
+---
+
+## 🛡️ Database & Security Constraints
+
+- The database runs on Supabase with Row Level Security (RLS) enabled.
+- **Strict User Isolation**: Data in `attempts` and `topic_progress` can only be accessed or modified for the currently authenticated user (`auth.uid() = user_id`).
+- When writing server-side actions or API handlers (`route.ts`), fetch the current user's session using the server client `@/lib/supabase/server`:
+  ```typescript
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  ```
+- If the user is unauthenticated, return a `401 Unauthorized` response immediately.
+
+---
+
+## 🎨 Visual Design & UI System
+
+The platform serves 9th-grade students preparing for critical exams. To keep them engaged, the user interface must be modern, game-like, responsive, and gorgeous:
+- **Styling**: Use **Tailwind CSS (v4)**.
+- **Palette**: Implement rich, vibrant gradients (Indigo to Violet for the main app, Coral/Rose Gold for high-priority elements, Mint/Teal for low-priority).
+- **Typography**: Keep text clean and legible (Outfit/Inter fonts). No serif default fonts.
+- **Interactions**:
+  - Add springy CSS transitions on hover/active states (`hover:scale-[1.02] active:scale-[0.98] transition-transform`).
+  - Provide instant, satisfying feedback in the Practice screen (options highlighting green or red, immediate score increases, progress indicators moving smoothly).

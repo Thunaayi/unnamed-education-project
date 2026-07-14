@@ -8,18 +8,18 @@ import os
 def main():
     parser = argparse.ArgumentParser(description="Simulate typing a file's content into VS Code for video recording.")
     parser.add_argument("file_path", help="Path to the file to type out.")
-    parser.add_argument("--delay-char", type=float, nargs=2, default=[0.003, 0.01], metavar=('MIN', 'MAX'),
-                        help="Min and max delay between characters in seconds (default: 0.003 0.01).")
-    parser.add_argument("--delay-line", type=float, nargs=2, default=[0.08, 0.15], metavar=('MIN', 'MAX'),
-                        help="Min and max delay after newlines in seconds (default: 0.08 0.15).")
+    parser.add_argument("--delay-char", type=float, nargs=2, default=[0.002, 0.008], metavar=('MIN', 'MAX'),
+                        help="Min and max delay between characters in seconds (default: 0.002 0.008).")
+    parser.add_argument("--delay-line", type=float, nargs=2, default=[0.05, 0.12], metavar=('MIN', 'MAX'),
+                        help="Min and max delay after newlines in seconds (default: 0.05 0.12).")
     parser.add_argument("--no-test", action="store_true", help="Skip the initial test message.")
-    parser.add_argument("--speed", choices=['slow', 'medium', 'fast'], default='medium',
-                        help="Preset speed: slow (2x delays), medium (default), fast (0.5x delays).")
+    parser.add_argument("--speed", choices=['slow', 'medium', 'fast', 'turbo'], default='fast',
+                        help="Preset speed: slow (2x delays), medium (1x), fast (0.5x), turbo (0.25x). Default is fast.")
 
     args = parser.parse_args()
 
     # Adjust delays based on speed
-    speed_multiplier = {'slow': 2.0, 'medium': 1.0, 'fast': 0.5}[args.speed]
+    speed_multiplier = {'slow': 2.0, 'medium': 1.0, 'fast': 0.5, 'turbo': 0.25}[args.speed]
     char_min, char_max = [d * speed_multiplier for d in args.delay_char]
     line_min, line_max = [d * speed_multiplier for d in args.delay_line]
 
@@ -53,11 +53,20 @@ def main():
         sys.exit(1)
 
     try:
+        sentence_pause_chars = {'.', '!', '?'}
+        comma_pause_chars = {',', ';', ':'}
+
         for char in content:
             pyautogui.write(char)
 
             if char == "\n":
                 time.sleep(random.uniform(line_min, line_max))
+                continue
+
+            if char in sentence_pause_chars:
+                time.sleep(random.uniform(line_min * 1.5, line_max * 2.0))
+            elif char in comma_pause_chars:
+                time.sleep(random.uniform(char_min * 2.5, char_max * 3.0))
             else:
                 time.sleep(random.uniform(char_min, char_max))
     except Exception as e:
